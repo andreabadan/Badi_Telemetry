@@ -43,14 +43,14 @@ class _DashBoard extends State<DashBoard> {
       });
       
       if(uartcharacteristics == null) {
-        widget.device.disconnect();
+        widget().device.disconnect();
         return main();
       }
     }
 
     _asyncInit () async {
-      await widget.device.connect();
-      List<BluetoothService> services = await widget.device.discoverServices();
+      await widget().device.connect();
+      List<BluetoothService> services = await widget().device.discoverServices();
       for (var service in services) {
         if(service.uuid.toString().toUpperCase().substring(4, 8) == "FFE0"){//0XFFE0
           uartcharacteristics = service.characteristics;
@@ -60,9 +60,8 @@ class _DashBoard extends State<DashBoard> {
               characteristicRead = true;
               await characteristic.setNotifyValue(true);
               characteristic.value.listen((value) {
-                setState(() {
-                  _onDataReceived(value);
-                });
+                //functino that is called when data is recived
+                _onDataReceived(value);
               });
             }
             if(characteristic.uuid.toString().toUpperCase().substring(4, 8) == "FFE2"){//0XFFE2
@@ -86,25 +85,26 @@ class _DashBoard extends State<DashBoard> {
       return Scaffold(
         appBar: AppBar(
           leading: const Icon(Icons.menu),
-          title: Text(widget.device.name),
+          title: Text(widget().device.name),
           //actions: If someone want add actions
         ),
         body: StreamBuilder<BluetoothDeviceState>(
-              stream: widget.device.state,
-              initialData: BluetoothDeviceState.connecting,
-              builder: (c, snapshot) {
-                switch (snapshot.data) {
-                  case BluetoothDeviceState.connected:
-                    return tachometerWidget();                   
-                  default:
-                    return spinkit;
-                }
-              },
-            )
+          stream: widget().device.state,
+          initialData: BluetoothDeviceState.connecting,
+          builder: (c, snapshot) {
+            switch (snapshot.data) {
+              case BluetoothDeviceState.connected:
+                return _tachometerWidget();                   
+              default:
+                //ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Connecting... Please wait!')));
+                return spinkit;
+            }
+          },
+        )
       );
     }
     
-    SafeArea tachometerWidget()=> //Tachometer
+    SafeArea _tachometerWidget()=> //Tachometer
     SafeArea( 
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center, //Center Row contents horizontally,
