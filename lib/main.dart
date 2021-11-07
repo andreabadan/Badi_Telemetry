@@ -1,10 +1,17 @@
-import 'package:flutter/cupertino.dart';
+import 'package:badi_telemetry/constants.dart';
+import 'package:badi_telemetry/controllers/menu_controller.dart';
+import 'package:badi_telemetry/controllers/bluetooth_controller.dart';
+import 'package:badi_telemetry/screens/main/main_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
+<<<<<<< Updated upstream
 import 'package:badi_telemetry/navigation_screen.dart';
 
+=======
+>>>>>>> Stashed changes
 void main() {
   //Change rientation
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,12 +21,13 @@ void main() {
   runApp(const TelemetryApp());
 }
 
-class TelemetryApp extends StatelessWidget {//Starting page 
+class TelemetryApp extends StatelessWidget {
   const TelemetryApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+<<<<<<< Updated upstream
       color: Colors.lightBlue,
       home: StreamBuilder<BluetoothState>(
           stream: FlutterBlue.instance.state,
@@ -62,6 +70,22 @@ class BluetoothOffScreen extends StatelessWidget {//Bluetooth Off
             ),
           ],
         ),
+=======
+      debugShowCheckedModeBanner: false,
+      title: 'Badi Telemetry',
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: bgColor,
+        textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme)
+            .apply(bodyColor: Colors.white),
+        canvasColor: secondaryColor,
+      ),
+      home: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => MenuController()),
+          ChangeNotifierProvider(create: (context) => BluetoothController()),
+        ],
+        child: const MainScreen(),
+>>>>>>> Stashed changes
       ),
     );
   }

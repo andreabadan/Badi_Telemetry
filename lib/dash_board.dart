@@ -1,5 +1,5 @@
 
-import 'package:badi_telemetry/main.dart';
+/*import 'package:badi_telemetry/main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
@@ -394,3 +394,4 @@ class LapTime {
     return(minutes.toString() + ":" + seconds.toString() + ":" + milliseconds.toString());
   }
 }
+*/
