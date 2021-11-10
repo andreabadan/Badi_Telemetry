@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-//import 'package:location_permissions/location_permissions.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:badi_telemetry/constants.dart';
 
@@ -28,12 +29,11 @@ class BluetoothController extends ChangeNotifier {
     dataToSendText = TextEditingController();
   }
 
-  void refreshScreen() {
+  void _refreshScreen() {
     notifyListeners();
-    //setState(() {});
   }
 
-  void _sendData() async {
+  void sendData() async {
       await flutterReactiveBle.writeCharacteristicWithResponse(rxCharacteristic, value: dataToSendText.text.codeUnits);
   }
 
@@ -43,52 +43,23 @@ class BluetoothController extends ChangeNotifier {
     if (_receivedData.length > 5) {
       _receivedData.removeAt(0);
     }
-    refreshScreen();
+    _refreshScreen();
   }
 
-  void _disconnect() async {
+  void disconnect() async {
     await connection.cancel();
     connected = false;
-    refreshScreen();
+    _refreshScreen();
   }
 
-  void _stopScan() async {
+  void stopScan() async {
     await scanStream.cancel();
     scanning = false;
-    refreshScreen();
+    _refreshScreen();
   }
 
-  /*Future<void> showNoPermissionDialog() async => showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) => AlertDialog(
-          title: const Text('No location permission '),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                const Text('No location permission granted.'),
-                const Text('Location permission is required for BLE to function.'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Acknowledge'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        ),
-    );
-    TODO: Into right page
-    */
-
   void startScan() async {
-    bool goForIt=true;
-    /*bool goForIt=false;
-    PermissionStatus permission ;
-    if (Platform.isAndroid) {
+    /*if (Platform.isAndroid) {
       permission = await LocationPermissions().requestPermissions();
       if (permission == PermissionStatus.granted) {
         goForIt = true;
@@ -96,25 +67,25 @@ class BluetoothController extends ChangeNotifier {
     } else if (Platform.isIOS) {
       goForIt=true;
       //goForIt = permission == PermissionStatus.granted;
-      //TODO:Test with IOS
     }*/
-    if (goForIt) {
+    if (await Permission.location.request().isGranted) {
+      //TODO: Test with IOS device
       foundBleUARTDevices = [];
       scanning = true;
-      refreshScreen();
-      scanStream =
-          flutterReactiveBle.scanForDevices(withServices: [serviceUUID]).listen((
-              device) {
-            if (foundBleUARTDevices.every((element) =>
-            element.id != device.id)) {
-              foundBleUARTDevices.add(device);
-              refreshScreen();
-            }
-          }, onError: (Object error) {
-            logTexts = "${logTexts}ERROR while scanning:$error \n";
-            refreshScreen();
-          }
-          );
+      _refreshScreen();
+      scanStream = flutterReactiveBle.scanForDevices(withServices: [serviceUUID]).listen((device) {
+        if (foundBleUARTDevices.every((element) =>
+        element.id != device.id)) {
+          foundBleUARTDevices.add(device);
+          _refreshScreen();
+        }
+      }, 
+      onError: (Object error) {
+        scanning = false;
+        _refreshScreen();
+        logTexts = "${logTexts}ERROR while scanning:$error \n";
+        _printLog(error.toString());
+      });
     }
     /*
     TODO: Into right page
@@ -126,23 +97,25 @@ class BluetoothController extends ChangeNotifier {
   void onConnectDevice(index) {
     currentConnectionStream = flutterReactiveBle.connectToAdvertisingDevice(
       id:foundBleUARTDevices[index].id,
-      prescanDuration: Duration(seconds: 1),
+      prescanDuration: const Duration(seconds: 1),
       withServices: [serviceUUID, rxUUID, txUUID],
     );
     logTexts = "";
-    refreshScreen();
+    _refreshScreen();
     connection = currentConnectionStream.listen((event) {
       var id = event.deviceId.toString();
       switch(event.connectionState) {
         case DeviceConnectionState.connecting:
           {
             logTexts = "${logTexts}Connecting to $id\n";
+            _printLog("Connecting...");
             break;
           }
         case DeviceConnectionState.connected:
           {
             connected = true;
             logTexts = "${logTexts}Connected to $id\n";
+            _printLog("Connected!");
             _numberOfMessagesReceived = 0;
             _receivedData = [];
             txCharacteristic = QualifiedCharacteristic(serviceId: serviceUUID, characteristicId: txUUID, deviceId: event.deviceId);
@@ -151,6 +124,7 @@ class BluetoothController extends ChangeNotifier {
                onNewReceivedData(data);
             }, onError: (dynamic error) {
               logTexts = "${logTexts}Error:$error$id\n";
+              _printLog(error.toString()+id.toString());
             });
             rxCharacteristic = QualifiedCharacteristic(serviceId: serviceUUID, characteristicId: rxUUID, deviceId: event.deviceId);
             break;
@@ -159,17 +133,28 @@ class BluetoothController extends ChangeNotifier {
           {
             connected = false;
             logTexts = "${logTexts}Disconnecting from $id\n";
+            _printLog("Disconnecting...");
             break;
           }
         case DeviceConnectionState.disconnected:
           {
             logTexts = "${logTexts}Disconnected from $id\n";
+            _printLog("Disconnected!");
             break;
           }
       }
-      refreshScreen();
+      _refreshScreen();
     });
   }
 
-  
+  void _printLog(String log){
+    Fluttertoast.showToast(
+                msg: log,
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.CENTER,
+                timeInSecForIosWeb: 1,
+                textColor: Colors.white,
+                fontSize: 16.0
+            );
+  }
 }

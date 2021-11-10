@@ -17,18 +17,9 @@ class BtFindList extends StatelessWidget {
         color: secondaryColor,
         borderRadius: BorderRadius.all(Radius.circular(10)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Founded Devices",
-            style: Theme.of(context).textTheme.subtitle1,
-          ),
-          SizedBox(
-            width: double.infinity,
-            child:_ListFoundDevices(),
-          ),
-        ],
+      child: SizedBox(
+        width: double.infinity,
+        child:_ListFoundDevices(),
       ),
     );
   }
@@ -39,46 +30,55 @@ class _ListFoundDevices extends StatelessWidget {
   Widget build(BuildContext context) {
     var bluetooth = context.watch<BluetoothController>();
     if(bluetooth.scanning) {
-      return DataTable2 (
-        columnSpacing: defaultPadding,
-        minWidth: 600,
-        columns: const [
-          DataColumn(
-            label: Text("Device Name"),
+      if(bluetooth.foundBleUARTDevices.isNotEmpty) {
+        return DataTable2 (
+          columnSpacing: defaultPadding,
+          minWidth: 600,
+          //onSelectChanged:(int index) => Provider.of<BluetoothController>(context, listen: false).onConnectDevice(index);,
+          columns:[
+            DataColumn(
+              label: Text("DEVICE NAME",
+                style: Theme.of(context).textTheme.subtitle1,
+              ),
+            ),
+            DataColumn(
+              label: Text("MAC",
+                style: Theme.of(context).textTheme.subtitle1,
+              ),
+            ),
+            DataColumn(
+              label: Text("STATUS",
+                style: Theme.of(context).textTheme.subtitle1,
+              ),
+            ),
+          ],
+          rows:List.generate(
+            bluetooth.foundBleUARTDevices.length,
+            (index) => devicesDataRow(bluetooth.foundBleUARTDevices[index], index),
           ),
-          DataColumn(
-            label: Text("MAC"),
-          ),
-          DataColumn(
-            label: Text("Status"),
-          ),
-        ],
-        rows:List.generate(
-          bluetooth.foundBleUARTDevices.length,
-          (index) => devicesDataRow(bluetooth.foundBleUARTDevices[index]),
-        ),
-      );
+        );
+      } else {
+        return Text(
+          "Scanning . . .",
+          style: Theme.of(context).textTheme.subtitle1,
+        );
+      }
     } else {
-      return DataTable2 (
-        columnSpacing: defaultPadding,
-        minWidth: 600,
-        columns: const [
-          DataColumn(
-            label: Text("Start scan to continue"),
-          ),
-        ],
-        rows:const []
+      return Text(
+        "Start scan to continue",
+        style: Theme.of(context).textTheme.subtitle1,
       );
     }
   }
 }
 
-DataRow devicesDataRow(DiscoveredDevice device) {
-  return DataRow(
+DataRow devicesDataRow(DiscoveredDevice device, int index) {
+  return DataRow2(
+    //onTap: Provider.of<BluetoothController>(context, listen: false).onConnectDevice(index),
     cells: [
       DataCell(Text(device.name)),
       DataCell(Text(device.id)),
-      DataCell(Text(device.id)),
+      const DataCell(Text("Ready to connect!")),
     ],
   );
 }
