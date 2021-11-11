@@ -20,7 +20,7 @@ class BluetoothController extends ChangeNotifier {
   late Stream<List<int>> receivedDataStream;
   late TextEditingController dataToSendText;
   bool scanning = false;
-  bool connected = false;
+  DeviceConnectionState bluetoothState = DeviceConnectionState.disconnected;
   String logTexts = "";
   List<String> _receivedData = [];
   int _numberOfMessagesReceived = 0;
@@ -48,7 +48,6 @@ class BluetoothController extends ChangeNotifier {
 
   void disconnect() async {
     await connection.cancel();
-    connected = false;
     _refreshScreen();
   }
 
@@ -95,6 +94,7 @@ class BluetoothController extends ChangeNotifier {
   }
 
   void onConnectDevice(index) {
+    stopScan();
     currentConnectionStream = flutterReactiveBle.connectToAdvertisingDevice(
       id:foundBleUARTDevices[index].id,
       prescanDuration: const Duration(seconds: 1),
@@ -104,44 +104,43 @@ class BluetoothController extends ChangeNotifier {
     _refreshScreen();
     connection = currentConnectionStream.listen((event) {
       var id = event.deviceId.toString();
-      switch(event.connectionState) {
+      bluetoothState = event.connectionState;
+      switch(bluetoothState) {
         case DeviceConnectionState.connecting:
-          {
-            logTexts = "${logTexts}Connecting to $id\n";
-            _printLog("Connecting...");
-            break;
-          }
+        {
+          logTexts = "${logTexts}Connecting to $id\n";
+          _printLog("Connecting...");
+          break;
+        }
         case DeviceConnectionState.connected:
-          {
-            connected = true;
-            logTexts = "${logTexts}Connected to $id\n";
-            _printLog("Connected!");
-            _numberOfMessagesReceived = 0;
-            _receivedData = [];
-            txCharacteristic = QualifiedCharacteristic(serviceId: serviceUUID, characteristicId: txUUID, deviceId: event.deviceId);
-            receivedDataStream = flutterReactiveBle.subscribeToCharacteristic(txCharacteristic);
-            receivedDataStream.listen((data) {
-               onNewReceivedData(data);
-            }, onError: (dynamic error) {
-              logTexts = "${logTexts}Error:$error$id\n";
-              _printLog(error.toString()+id.toString());
-            });
-            rxCharacteristic = QualifiedCharacteristic(serviceId: serviceUUID, characteristicId: rxUUID, deviceId: event.deviceId);
-            break;
-          }
+        {
+          logTexts = "${logTexts}Connected to $id\n";
+          _printLog("Connected!");
+          _numberOfMessagesReceived = 0;
+          _receivedData = [];
+          txCharacteristic = QualifiedCharacteristic(serviceId: serviceUUID, characteristicId: txUUID, deviceId: event.deviceId);
+          receivedDataStream = flutterReactiveBle.subscribeToCharacteristic(txCharacteristic);
+          receivedDataStream.listen((data) {
+              onNewReceivedData(data);
+          }, onError: (dynamic error) {
+            logTexts = "${logTexts}Error:$error$id\n";
+            _printLog(error.toString()+id.toString());
+          });
+          rxCharacteristic = QualifiedCharacteristic(serviceId: serviceUUID, characteristicId: rxUUID, deviceId: event.deviceId);
+          break;
+        }
         case DeviceConnectionState.disconnecting:
-          {
-            connected = false;
-            logTexts = "${logTexts}Disconnecting from $id\n";
-            _printLog("Disconnecting...");
-            break;
-          }
+        {
+          logTexts = "${logTexts}Disconnecting from $id\n";
+          _printLog("Disconnecting...");
+          break;
+        }
         case DeviceConnectionState.disconnected:
-          {
-            logTexts = "${logTexts}Disconnected from $id\n";
-            _printLog("Disconnected!");
-            break;
-          }
+        {
+          logTexts = "${logTexts}Disconnected from $id\n";
+          _printLog("Disconnected!");
+          break;
+        }
       }
       _refreshScreen();
     });
