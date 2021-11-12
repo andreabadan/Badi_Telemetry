@@ -12,18 +12,19 @@ class BluetoothController extends ChangeNotifier {
 
   final flutterReactiveBle = FlutterReactiveBle();
   List<DiscoveredDevice> foundBleUARTDevices = [];
+  DiscoveredDevice? connectedDevice;
   late StreamSubscription<DiscoveredDevice> scanStream;
   late Stream<ConnectionStateUpdate> currentConnectionStream;
   late StreamSubscription<ConnectionStateUpdate> connection;
   late QualifiedCharacteristic txCharacteristic;
   late QualifiedCharacteristic rxCharacteristic;
   late Stream<List<int>> receivedDataStream;
+  BluetoothData tachometerData = BluetoothData();
   late TextEditingController dataToSendText;
   bool scanning = false;
   DeviceConnectionState bluetoothState = DeviceConnectionState.disconnected;
   String logTexts = "";
   List<String> _receivedData = [];
-  int _numberOfMessagesReceived = 0;
 
   void initState() {
     dataToSendText = TextEditingController();
@@ -38,11 +39,7 @@ class BluetoothController extends ChangeNotifier {
   }
 
   void onNewReceivedData(List<int> data) {
-    _numberOfMessagesReceived += 1;
-    _receivedData.add( "$_numberOfMessagesReceived: ${String.fromCharCodes(data)}");
-    if (_receivedData.length > 5) {
-      _receivedData.removeAt(0);
-    }
+    tachometerData.newData(data);
     _refreshScreen();
   }
 
@@ -95,10 +92,12 @@ class BluetoothController extends ChangeNotifier {
 
   void onConnectDevice(index) {
     stopScan();
-    currentConnectionStream = flutterReactiveBle.connectToAdvertisingDevice(
+    connectedDevice = foundBleUARTDevices[index];
+    currentConnectionStream = flutterReactiveBle.connectToDevice(
       id:foundBleUARTDevices[index].id,
-      prescanDuration: const Duration(seconds: 1),
-      withServices: [serviceUUID, rxUUID, txUUID],
+      connectionTimeout: const Duration(seconds: 5)
+      /*prescanDuration: const Duration(seconds: 5),
+      withServices: [serviceUUID, rxUUID, txUUID],*/
     );
     logTexts = "";
     _refreshScreen();
@@ -116,7 +115,6 @@ class BluetoothController extends ChangeNotifier {
         {
           logTexts = "${logTexts}Connected to $id\n";
           _printLog("Connected!");
-          _numberOfMessagesReceived = 0;
           _receivedData = [];
           txCharacteristic = QualifiedCharacteristic(serviceId: serviceUUID, characteristicId: txUUID, deviceId: event.deviceId);
           receivedDataStream = flutterReactiveBle.subscribeToCharacteristic(txCharacteristic);
@@ -155,5 +153,134 @@ class BluetoothController extends ChangeNotifier {
                 textColor: Colors.white,
                 fontSize: 16.0
             );
+  }
+}
+
+class BluetoothData {
+  late String rpm;
+  late String temperature;
+  late String lap;
+  late String bufferBT;
+  late int rpmDisplay;
+  late double temperatureDisplay;
+  late LapTime lapDisplay;
+  late int dataType;
+
+  BluetoothData(){
+    rpm = "";
+    temperature = "";
+    lap = "";
+    bufferBT = "";
+    rpmDisplay = 0;
+    temperatureDisplay = 0.0;
+    lapDisplay = LapTime();
+    dataType = 0;
+  }
+
+  bool newData(List<int> data) { 
+    bool updateData = false;
+    for (var byte in data) {
+      switch(byte){
+        case tempCharacter:
+          if(bufferBT != "") {
+            if(bufferBT.substring(0,1) == tempProbeBrokenCharacter) {
+              temperature = "0.0";
+            } else {
+              temperatureDisplay = double.parse(bufferBT)/10.0;
+            }
+            updateData = true;
+          }
+          bufferBT = "";
+        break;
+
+        case rpmCharacter:
+          if(bufferBT != "") {
+            rpmDisplay = int.parse(bufferBT);
+            updateData = true;
+          }
+          bufferBT = "";
+        break;
+
+        case lapCharacter:
+          if(bufferBT != "") {
+            if(bufferBT.substring(0,1) == lapFinishedCharacter){
+              lapDisplay.setLapFinished(true);
+              lapDisplay.setTime(int.parse(bufferBT.substring(1)));
+            }else {
+              lapDisplay.setTime(int.parse(bufferBT));
+            }
+            updateData = true;
+          }
+          bufferBT = "";
+        break;
+
+        default:
+          //create data
+          bufferBT += String.fromCharCodes([byte]);
+        }
+      } 
+    return updateData;    
+  }
+}
+
+class LapTime {
+  late int _milliseconds;
+  late bool _lapFinished;
+  late List <Text> _laps;
+  
+  LapTime(){
+     _milliseconds = 0;
+     _lapFinished  = false;
+     _laps = <Text>[];
+  }
+
+  void setTime(int milliseconds){
+    _milliseconds = milliseconds;
+    if(_lapFinished){
+      _lapFinished = false;
+      _laps.insert(
+        0,
+        Text(
+          (_laps.length +1).toString() + ": " + _ellapsedTime(_milliseconds), 
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 15,
+          )
+        )
+      );
+    }
+  }
+
+  void setLapFinished(bool finish){
+    _lapFinished = finish;
+  }
+
+  String getEllapsedTime(){
+    return(_ellapsedTime(_milliseconds));
+  }
+
+  List <Text> getLaps(){
+    return _laps;
+  }
+
+  String _ellapsedTime(millis){
+    var minutes      = millis~/(60000);
+    var milliseconds = millis - minutes*60000;
+    var seconds      = milliseconds~/(1000);
+    milliseconds    -= seconds*1000;
+    
+    var ellapsedTime = milliseconds.toString();
+    if(ellapsedTime.length == 1) {
+      ellapsedTime = "00" + ellapsedTime;
+    } else if(ellapsedTime.length == 2) {
+      ellapsedTime = "0" + ellapsedTime;
+    }
+    
+    ellapsedTime = seconds.toString() + ":" + ellapsedTime;
+    if(ellapsedTime.length == 5) {
+      ellapsedTime = "0" + ellapsedTime;
+    }
+    
+    return(minutes.toString() + ":" + ellapsedTime);
   }
 }

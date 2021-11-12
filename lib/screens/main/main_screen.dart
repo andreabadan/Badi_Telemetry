@@ -6,8 +6,10 @@ import 'package:badi_telemetry/screens/telemetry/telemetry_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import 'package:badi_telemetry/screens/main/components/side_menu.dart';
+import 'package:badi_telemetry/constants.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -40,6 +42,15 @@ class MainScreen extends StatelessWidget {
                 // It takes 1/6 part of the screen
                 //flex: 1,
                 child: Telemetry(),
+              ),
+            if(bluetoothState == DeviceConnectionState.connecting || bluetoothState == DeviceConnectionState.disconnecting)
+              const Expanded(
+                // It takes 1/6 part of the screen
+                //flex: 1,
+                child: SpinKitFadingCircle(
+                  color: primaryColor,
+                  size: 70.0,
+                )
               ),
           ],
         ),

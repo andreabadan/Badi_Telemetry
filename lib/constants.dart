@@ -10,3 +10,11 @@ const defaultPadding = 16.0;
 final Uuid serviceUUID = Uuid.parse("0000FFE0-0000-1000-8000-00805F9B34FB");
 final Uuid rxUUID      = Uuid.parse("0000FFE2-0000-1000-8000-00805F9B34FB");
 final Uuid txUUID      = Uuid.parse("0000FFE1-0000-1000-8000-00805F9B34FB");
+
+//Escape Characters
+const tempCharacter = 84;//T
+const rpmCharacter = 82;//R
+const lapCharacter = 76;//L
+//Description Strings
+const tempProbeBrokenCharacter = "B";//66 B
+const lapFinishedCharacter = "F";//70 F

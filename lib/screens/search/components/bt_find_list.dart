@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:badi_telemetry/constants.dart';
 
 class BtFindList extends StatelessWidget {
-  const BtFindList({Key? key}) : super(key: key);
+  const BtFindList({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +79,7 @@ class _ListFoundDevices extends StatelessWidget {
         }
       } else {
         return const SpinKitFadingCircle(
-          color: Colors.lightBlue,
+          color: primaryColor,
           size: 70.0,
         );
       }
