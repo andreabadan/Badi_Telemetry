@@ -1,111 +1,39 @@
-
-import 'package:badi_telemetry/main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:provider/provider.dart';
 
-class DashBoard extends StatefulWidget {
-  const DashBoard({Key? key, required this.device}) : super(key: key);
+import 'package:badi_telemetry/controllers/bluetooth_controller.dart';
+import 'package:badi_telemetry/constants.dart';
 
-  final BluetoothDevice device;
-
+class Tachometer extends StatelessWidget {
+  const Tachometer({
+    Key? key,
+  }) : super(key: key);
+  
   @override
-  _DashBoard createState() => _DashBoard();
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: secondaryColor,
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        child:_TachometerWidget(),
+      ),
+    );
+  }
 }
 
-class _DashBoard extends State<DashBoard> {
+class _TachometerWidget extends StatelessWidget {
 
-  List<BluetoothCharacteristic>? uartcharacteristics;
-  //Escape Characters
-  static const tempCharacter = 84;//T
-  static const rpmCharacter = 82;//R
-  static const lapCharacter = 76;//L
-  //Description Strings
-  static const tempProbeBrokenCharacter = "B";//66 B
-  static const lapFinishedCharacter = "F";//70 F
+  @override
+  Widget build(BuildContext context) {
 
-  String rpm = "";
-  String temperature = "";
-  String lap = "";
-  String bufferBT = "";
-  int rpmDisplay = 0;
-  double temperatureDisplay = 0.0;
-  LapTime lapDisplay = LapTime();
-  int dataType = 0;
-  
-    @override
-    void initState() {
-      super.initState();
-      WidgetsBinding.instance!.addPostFrameCallback((_){
-        _asyncInit();
-      });
-      
-      if(uartcharacteristics == null) {
-        widget.device.disconnect();
-        return main();
-      }
-    }
-
-    _asyncInit () async {
-      await widget.device.connect();
-      List<BluetoothService> services = await widget.device.discoverServices();
-      for (var service in services) {
-        if(service.uuid.toString().toUpperCase().substring(4, 8) == "FFE0"){//0XFFE0
-          uartcharacteristics = service.characteristics;
-          bool characteristicRead = false, characteristicWrite = false;
-          for (var characteristic in service.characteristics) {
-            if(characteristic.uuid.toString().toUpperCase().substring(4, 8) == "FFE1"){//0XFFE1
-              characteristicRead = true;
-              await characteristic.setNotifyValue(true);
-              characteristic.value.listen((value) {
-                setState(() {
-                  _onDataReceived(value);
-                });
-              });
-            }
-            if(characteristic.uuid.toString().toUpperCase().substring(4, 8) == "FFE2"){//0XFFE2
-              characteristicWrite = true;
-            }
-          }
-          if(characteristicRead && characteristicWrite){
-            uartcharacteristics = null;
-          }
-        }
-      }
-    }
-  
-    @override
-    Widget build(BuildContext context) {
-      const spinkit = SpinKitFadingCircle(
-        color: Colors.lightBlue,
-        size: 70.0,
-      );
-      
-      return Scaffold(
-        appBar: AppBar(
-          leading: const Icon(Icons.menu),
-          title: Text(widget.device.name),
-          //actions: If someone want add actions
-        ),
-        body: StreamBuilder<BluetoothDeviceState>(
-              stream: widget.device.state,
-              initialData: BluetoothDeviceState.connecting,
-              builder: (c, snapshot) {
-                switch (snapshot.data) {
-                  case BluetoothDeviceState.connected:
-                    return tachometerWidget();                   
-                  default:
-                    return spinkit;
-                }
-              },
-            )
-      );
-    }
+    var tachometerData = context.watch<BluetoothController>().tachometerData;
     
-    SafeArea tachometerWidget()=> //Tachometer
-    SafeArea( 
+    return SafeArea( 
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center, //Center Row contents horizontally,
         children: <Widget>[
@@ -140,7 +68,7 @@ class _DashBoard extends State<DashBoard> {
                   NeedlePointer(
                     needleStartWidth: 1,
                     enableAnimation: true,
-                    value: rpmDisplay/1000,
+                    value: tachometerData.rpmDisplay/1000,
                     tailStyle: const TailStyle(
                         length: 0.2, width: 5, lengthUnit: GaugeSizeUnit.factor),
                     needleEndWidth: 5,
@@ -171,9 +99,9 @@ class _DashBoard extends State<DashBoard> {
                 annotations: <GaugeAnnotation>[
                   GaugeAnnotation(
                     widget: Text(
-                      rpmDisplay>1000
-                        ?(rpmDisplay/1000).toStringAsFixed(3)+' rpm'
-                        :rpmDisplay.toString()+' rpm',
+                      tachometerData.rpmDisplay>1000
+                        ?(tachometerData.rpmDisplay/1000).toStringAsFixed(3)+' rpm'
+                        :tachometerData.rpmDisplay.toString()+' rpm',
                       style: const TextStyle(fontSize: 20,fontWeight: FontWeight.bold)
                       ),
                     angle: 90, positionFactor: 0.8
@@ -190,7 +118,8 @@ class _DashBoard extends State<DashBoard> {
                   FittedBox(
                     fit: BoxFit.none,
                     child:Text(
-                        lapDisplay.getEllapsedTime(),
+                        tachometerData.lapDisplay.getEllapsedTime(),
+                        //TODO: fix text
                         style: const TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.bold
@@ -205,10 +134,10 @@ class _DashBoard extends State<DashBoard> {
                         sliver: SliverList(
                           delegate: SliverChildBuilderDelegate(
                             (BuildContext context, int index){
-                              return lapDisplay.getLaps()[index];
+                              return tachometerData.lapDisplay.getLaps()[index];
                             },
-                            childCount: lapDisplay.getLaps().length < 6
-                              ? lapDisplay.getLaps().length
+                            childCount: tachometerData.lapDisplay.getLaps().length < 6
+                              ? tachometerData.lapDisplay.getLaps().length
                               : 6,
                           ),
                         ),
@@ -250,7 +179,7 @@ class _DashBoard extends State<DashBoard> {
                   NeedlePointer(
                     needleStartWidth: 1,
                     enableAnimation: true,
-                    value: temperatureDisplay,
+                    value: tachometerData.temperatureDisplay,
                     tailStyle: const TailStyle(
                       length: 0.2, width: 5, lengthUnit: GaugeSizeUnit.factor),
                     needleEndWidth: 5,
@@ -280,8 +209,8 @@ class _DashBoard extends State<DashBoard> {
                 ],
                 annotations: <GaugeAnnotation>[
                   GaugeAnnotation(
-                    widget: Text(temperatureDisplay!=999.9
-                        ?temperatureDisplay.toString()+' °C'
+                    widget: Text(tachometerData.temperatureDisplay!=999.9
+                        ?tachometerData.temperatureDisplay.toString()+' °C'
                         :"Probe Broken",
                       style: const TextStyle(fontSize: 20,fontWeight: FontWeight.bold)
                       ),
@@ -294,103 +223,5 @@ class _DashBoard extends State<DashBoard> {
         ],
       ),
     );
-
-  
-    
-    void _onDataReceived(List<int> data) { 
-      for (var byte in data) {
-        switch(byte){
-          //search datatype
-          case tempCharacter:
-            if(bufferBT != "") {
-              setState(() {
-                if(bufferBT.substring(0,1) == tempProbeBrokenCharacter) {
-                  temperature = "0.0";
-                } else {
-                  temperatureDisplay = double.parse(bufferBT)/10.0;
-                }
-              });
-            }
-            bufferBT = "";
-          break;
-
-          case rpmCharacter:
-            if(bufferBT != "") {
-              setState(() {
-                rpmDisplay = int.parse(bufferBT);
-              });
-            }
-            bufferBT = "";
-          break;
-
-          case lapCharacter:
-            if(bufferBT != "") {
-              setState(() {
-                if(bufferBT.substring(0,1) == lapFinishedCharacter){
-                  lapDisplay.setLapFinished(true);
-                  lapDisplay.setTime(int.parse(bufferBT.substring(1)));
-                }else {
-                  lapDisplay.setTime(int.parse(bufferBT));
-                }
-              });
-            }
-            bufferBT = "";
-          break;
-  
-          default:
-            //create data
-            bufferBT += String.fromCharCodes([byte]);
-          }
-        }     
-    }
-  }
-  
-class LapTime {
-  late int _milliseconds;
-  late bool _lapFinished;
-  late List <Text> _laps;
-  
-  LapTime(){
-     _milliseconds = 0;
-     _lapFinished  = false;
-     _laps = <Text>[];
-  }
-
-  void setTime(int milliseconds){
-    _milliseconds = milliseconds;
-    if(_lapFinished){
-      _lapFinished = false;
-      _laps.insert(
-        0,
-        Text(
-          (_laps.length +1).toString() + ": " + _ellapsedTime(_milliseconds), 
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 15,
-          )
-        )
-      );
-    }
-  }
-
-  void setLapFinished(bool finish){
-    _lapFinished = finish;
-  }
-
-  String getEllapsedTime(){
-    return(_ellapsedTime(_milliseconds));
-  }
-
-  List <Text> getLaps(){
-    return _laps;
-  }
-
-  String _ellapsedTime(millis){
-    var minutes      = millis~/(60000);
-    var milliseconds = millis - minutes*60000;
-    var seconds      = milliseconds~/(1000);
-    milliseconds    -= seconds*1000;
-
-    return(minutes.toString() + ":" + seconds.toString() + ":" + milliseconds.toString());
   }
 }
