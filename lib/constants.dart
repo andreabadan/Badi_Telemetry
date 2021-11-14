@@ -5,6 +5,9 @@ const primaryColor = Color(0xFF2697FF);
 const secondaryColor = Color(0xFF2A2D3E);
 const bgColor = Color(0xFF212332);
 
+const itemSelectableColor = Colors.white70;
+const itemNotSelectableColor = Colors.white12;
+
 const defaultPadding = 16.0;
 
 final Uuid serviceUUID = Uuid.parse("0000FFE0-0000-1000-8000-00805F9B34FB");
@@ -18,3 +21,21 @@ const lapCharacter = 76;//L
 //Description Strings
 const tempProbeBrokenCharacter = "B";//66 B
 const lapFinishedCharacter = "F";//70 F
+
+enum IndexMenuState {
+  //Main page (dashboard & connection)
+  main,
+
+  //Update firmware page
+  updateFirmware,
+
+  //Graph page
+  graph,
+
+  //Settings page
+  settings,
+
+  //Info page
+  info
+}
+

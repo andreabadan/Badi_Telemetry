@@ -1,7 +1,7 @@
 import 'package:badi_telemetry/constants.dart';
 import 'package:badi_telemetry/controllers/menu_controller.dart';
 import 'package:badi_telemetry/controllers/bluetooth_controller.dart';
-import 'package:badi_telemetry/screens/main/main_screen.dart';
+import 'package:badi_telemetry/screens/00_main/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';

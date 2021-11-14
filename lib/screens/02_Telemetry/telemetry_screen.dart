@@ -1,5 +1,5 @@
-import 'package:badi_telemetry/screens/telemetry/components/tachometer.dart';
-import 'package:badi_telemetry/screens/telemetry/components/header.dart';
+import 'package:badi_telemetry/screens/02_telemetry/components/tachometer.dart';
+import 'package:badi_telemetry/screens/02_telemetry/components/header.dart';
 import 'package:flutter/material.dart';
 
 

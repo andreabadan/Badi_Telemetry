@@ -24,7 +24,7 @@ class BluetoothController extends ChangeNotifier {
   bool scanning = false;
   DeviceConnectionState bluetoothState = DeviceConnectionState.disconnected;
   String logTexts = "";
-  List<String> _receivedData = [];
+  bool writing = false;
 
   void initState() {
     dataToSendText = TextEditingController();
@@ -39,12 +39,19 @@ class BluetoothController extends ChangeNotifier {
   }
 
   void onNewReceivedData(List<int> data) {
-    tachometerData.newData(data);
-    _refreshScreen();
+    if (tachometerData.newData(data)) {
+      _refreshScreen();
+    }
   }
 
   void disconnect() async {
+    _printLog("Disconnecting...");
+    bluetoothState  = DeviceConnectionState.disconnecting;
+    _refreshScreen();
+    
     await connection.cancel();
+    _printLog("Disconnected!");
+    bluetoothState  = DeviceConnectionState.disconnected;
     _refreshScreen();
   }
 
@@ -115,7 +122,6 @@ class BluetoothController extends ChangeNotifier {
         {
           logTexts = "${logTexts}Connected to $id\n";
           _printLog("Connected!");
-          _receivedData = [];
           txCharacteristic = QualifiedCharacteristic(serviceId: serviceUUID, characteristicId: txUUID, deviceId: event.deviceId);
           receivedDataStream = flutterReactiveBle.subscribeToCharacteristic(txCharacteristic);
           receivedDataStream.listen((data) {
@@ -147,7 +153,7 @@ class BluetoothController extends ChangeNotifier {
   void _printLog(String log){
     Fluttertoast.showToast(
                 msg: log,
-                toastLength: Toast.LENGTH_LONG,
+                toastLength: Toast.LENGTH_SHORT,
                 gravity: ToastGravity.CENTER,
                 timeInSecForIosWeb: 1,
                 textColor: Colors.white,

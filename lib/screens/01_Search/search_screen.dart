@@ -1,12 +1,14 @@
 import 'package:badi_telemetry/responsive.dart';
-import 'package:badi_telemetry/screens/search/components/bt_find_list.dart';
-import 'package:badi_telemetry/screens/search/components/header.dart';
+import 'package:badi_telemetry/screens/01_search/components/bt_find_list.dart';
+import 'package:badi_telemetry/screens/01_search/components/header.dart';
 import 'package:flutter/material.dart';
 
 import 'package:badi_telemetry/constants.dart';
 
-class Search extends StatelessWidget {//Starting page 
-  const Search({Key? key}) : super(key: key);
+class Search extends StatelessWidget {
+  const Search({
+        Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -38,33 +40,4 @@ class Search extends StatelessWidget {//Starting page
       ),
     );
   }
-}               
-
-
-
-
-
-
-
-
-
-
-
-
-/*    
-    return SafeArea(
-      color: Colors.lightBlue,
-      home: StreamBuilder<BluetoothState>(
-          stream: FlutterBlue.instance.state,
-          initialData: BluetoothState.unknown,
-          builder: (c, snapshot) {
-            final state = snapshot.data;
-            if (state == BluetoothState.on) {
-              return const FindDevicesScreen();
-            }
-            return BluetoothOffScreen(state: state);
-          }),
-    );
-  }
-}*/
-
+} 
