@@ -6,7 +6,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:badi_telemetry/constants.dart';
 
-import 'dart:io' show Platform;
 
 class BluetoothController extends ChangeNotifier {
 

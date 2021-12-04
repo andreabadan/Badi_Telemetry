@@ -16,7 +16,7 @@ class SideMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var bluetoothState = context.watch<BluetoothController>().bluetoothState;
+    DeviceConnectionState bluetoothState = context.watch<MenuController>().deviceConnectionState;
     return Drawer(
       child: ListView(
         children: [
@@ -28,11 +28,12 @@ class SideMenu extends StatelessWidget {
               title: "Disconnect",
               svgSrc: "assets/icons/disconnect.svg",
               itemColor: context.watch<BluetoothController>().writing ? itemNotSelectableColor : itemSelectableColor,
+              //TODO:??
               press: () {
-                  if(!context.read<BluetoothController>().writing) {
-                    Provider.of<BluetoothController>(context, listen: false).disconnect();
-                  }
-                },
+                if(!context.read<BluetoothController>().writing) {
+                  Provider.of<BluetoothController>(context, listen: false).disconnect();
+                }
+              },
             ),
           if(bluetoothState == DeviceConnectionState.connected)
             DrawerListTile(
@@ -40,7 +41,8 @@ class SideMenu extends StatelessWidget {
               svgSrc: "assets/icons/stopwatch.svg",
               itemColor: itemSelectableColor,
               press: () {
-                Provider.of<MenuController>(context, listen: false).setIndexMenuState(IndexMenuState.main);
+                Navigator.of(context).pop();
+                Provider.of<MenuController>(context, listen: false).setIndexMenuState(IndexMenuState.telemetry);
               },
             ),
           if(bluetoothState == DeviceConnectionState.connected)
@@ -49,6 +51,7 @@ class SideMenu extends StatelessWidget {
               svgSrc: "assets/icons/update.svg",
               itemColor: itemSelectableColor,
               press: () {
+                Navigator.of(context).pop();
                 Provider.of<MenuController>(context, listen: false).setIndexMenuState(IndexMenuState.updateFirmware);
               },
             ),
@@ -58,7 +61,8 @@ class SideMenu extends StatelessWidget {
               svgSrc: "assets/icons/connect.svg",
               itemColor: itemSelectableColor,
               press: () {
-                Provider.of<MenuController>(context, listen: false).setIndexMenuState(IndexMenuState.main);
+                Navigator.of(context).pop();
+                Provider.of<MenuController>(context, listen: false).setIndexMenuState(IndexMenuState.search);
               },
             ),
           DrawerListTile(
@@ -66,6 +70,7 @@ class SideMenu extends StatelessWidget {
             svgSrc: "assets/icons/graph.svg",
             itemColor: itemSelectableColor,
             press: () {
+              Navigator.of(context).pop();
               Provider.of<MenuController>(context, listen: false).setIndexMenuState(IndexMenuState.graph);
             },
           ),
@@ -74,6 +79,7 @@ class SideMenu extends StatelessWidget {
             svgSrc: "assets/icons/menu_setting.svg",
             itemColor: itemSelectableColor,
             press: () {
+              Navigator.of(context).pop();
               Provider.of<MenuController>(context, listen: false).setIndexMenuState(IndexMenuState.settings);
             },
           ),
@@ -82,6 +88,7 @@ class SideMenu extends StatelessWidget {
             svgSrc: "assets/icons/info.svg",
             itemColor: itemSelectableColor,
             press: () {
+              Navigator.of(context).pop();
               Provider.of<MenuController>(context, listen: false).setIndexMenuState(IndexMenuState.info);
             },
           ),

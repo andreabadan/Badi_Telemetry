@@ -23,8 +23,11 @@ const tempProbeBrokenCharacter = "B";//66 B
 const lapFinishedCharacter = "F";//70 F
 
 enum IndexMenuState {
-  //Main page (dashboard & connection)
-  main,
+  //Main page search
+  search,
+
+  //Main page telemetry
+  telemetry,
 
   //Update firmware page
   updateFirmware,
@@ -37,5 +40,14 @@ enum IndexMenuState {
 
   //Info page
   info
+}
+
+class Routes {
+  static const String search = "/search";
+  static const String telemetry = "/telemetry";
+  static const String updateFirmware = "/updateFirmware";
+  static const String graph = "/graph";
+  static const String settings = "/settings";
+  static const String info = "/info";
 }
 

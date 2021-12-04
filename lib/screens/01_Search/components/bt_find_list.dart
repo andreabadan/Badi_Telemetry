@@ -1,8 +1,8 @@
+import 'package:badi_telemetry/models/functions.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:badi_telemetry/controllers/bluetooth_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:data_table_2/data_table_2.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter/material.dart';
 
 import 'package:badi_telemetry/constants.dart';
@@ -32,9 +32,9 @@ class _ListFoundDevices extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var bluetooth = context.watch<BluetoothController>();
-    if(bluetooth.scanning) {
-      if(bluetooth.foundBleUARTDevices.isNotEmpty) {
-        if(bluetooth.bluetoothState == DeviceConnectionState.disconnected) {
+    if(bluetooth.bluetoothState == DeviceConnectionState.disconnected) {
+      if(bluetooth.scanning) {
+        if(bluetooth.foundBleUARTDevices.isNotEmpty) {
           return DataTable2 (
             columnSpacing: defaultPadding,
             minWidth: 600,
@@ -72,22 +72,16 @@ class _ListFoundDevices extends StatelessWidget {
             ),
           );
         } else {
-          return Text(
-            "Scanning . . .",
-            style: Theme.of(context).textTheme.subtitle1,
-          );
+          return loading();
         }
       } else {
-        return const SpinKitFadingCircle(
-          color: primaryColor,
-          size: 70.0,
+        return Text(
+          "Start scan to continue",
+          style: Theme.of(context).textTheme.subtitle1,
         );
       }
     } else {
-      return Text(
-        "Start scan to continue",
-        style: Theme.of(context).textTheme.subtitle1,
-      );
+      return loading();
     }
   }
 }
