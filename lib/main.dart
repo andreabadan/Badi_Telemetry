@@ -34,8 +34,8 @@ class TelemetryApp extends StatelessWidget {
         providers: [
           ChangeNotifierProvider<BluetoothController>(create: (context) => BluetoothController()),
           ChangeNotifierProxyProvider<BluetoothController,MenuController>(
-            create: (BuildContext context) => MenuController(Provider.of<BluetoothController>(context, listen: false).bluetoothState),
-            update: (BuildContext context, BluetoothController bluetoothController, MenuController? menuController) => MenuController(bluetoothController.bluetoothState),
+            create: (BuildContext context) => MenuController(),
+            update: (BuildContext context, BluetoothController bluetoothController, MenuController? menuController) => menuController! ..update(bluetoothController.bluetoothState),
           ),
         ],
         child: const MainScreen(),

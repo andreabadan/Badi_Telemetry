@@ -52,7 +52,6 @@ class SearchField extends StatelessWidget {
         ),
         suffixIcon: InkWell(
           onTap: () {
-            Provider.of<BluetoothController>(context, listen: false).startScan();
           },
           child: Container(
             padding: const EdgeInsets.all(defaultPadding * 0.75),
