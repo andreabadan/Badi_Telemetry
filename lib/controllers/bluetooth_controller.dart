@@ -188,33 +188,55 @@ class BluetoothData {
       switch(byte){
         case tempCharacter:
           if(bufferBT != "") {
+            debugPrint(bufferBT);
             if(bufferBT.substring(0,1) == tempProbeBrokenCharacter) {
               temperature = "0.0";
+              updateData = true;
             } else {
-              temperatureDisplay = double.parse(bufferBT)/10.0;
+              //in case of error on communication line discard message
+              double? t = double.tryParse(bufferBT);
+              if(t != null){
+                temperatureDisplay = t/10.0;
+                updateData = true;
+              }
             }
-            updateData = true;
           }
           bufferBT = "";
         break;
 
         case rpmCharacter:
           if(bufferBT != "") {
-            rpmDisplay = int.parse(bufferBT);
-            updateData = true;
+            debugPrint(bufferBT);
+            //in case of error on communication line discard message
+            int? t = int.tryParse(bufferBT);
+            if(t != null) {
+              rpmDisplay = t;
+              updateData = true;
+            }
           }
           bufferBT = "";
         break;
 
         case lapCharacter:
           if(bufferBT != "") {
+            debugPrint(bufferBT);
+            int? t;
             if(bufferBT.substring(0,1) == lapFinishedCharacter){
               lapDisplay.setLapFinished(true);
-              lapDisplay.setTime(int.parse(bufferBT.substring(1)));
-            }else {
-              lapDisplay.setTime(int.parse(bufferBT));
+              //in case of error on communication line discard message
+              t = int.tryParse(bufferBT.substring(1));
+              if(t != null) {
+                lapDisplay.setTime(int.parse(bufferBT.substring(1)));
+                updateData = true;
+              }
+            } else {
+              //in case of error on communication line discard message
+              t = int.tryParse(bufferBT);
+              if(t != null) {
+                lapDisplay.setTime(t);
+                updateData = true;
+              }
             }
-            updateData = true;
           }
           bufferBT = "";
         break;
