@@ -28,7 +28,6 @@ class SideMenu extends StatelessWidget {
               title: "Disconnect",
               svgSrc: "assets/icons/disconnect.svg",
               itemColor: context.watch<BluetoothController>().writing ? itemNotSelectableColor : itemSelectableColor,
-              //TODO:??
               press: () {
                 if(!context.read<BluetoothController>().writing) {
                   Provider.of<BluetoothController>(context, listen: false).disconnect();

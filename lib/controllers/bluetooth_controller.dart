@@ -19,22 +19,18 @@ class BluetoothController extends ChangeNotifier {
   late QualifiedCharacteristic rxCharacteristic;
   late Stream<List<int>> receivedDataStream;
   BluetoothData tachometerData = BluetoothData();
-  late TextEditingController dataToSendText;
   bool scanning = false;
   DeviceConnectionState bluetoothState = DeviceConnectionState.disconnected;
   String logTexts = "";
   bool writing = false;
 
-  void initState() {
-    dataToSendText = TextEditingController();
-  }
-
   void _refreshScreen() {
     notifyListeners();
   }
 
-  void sendData() async {
-      await flutterReactiveBle.writeCharacteristicWithResponse(rxCharacteristic, value: dataToSendText.text.codeUnits);
+  void sendData(String valueToSend) async {
+    TextEditingController dataToSendText = TextEditingController(text: valueToSend);
+    await flutterReactiveBle.writeCharacteristicWithResponse(rxCharacteristic, value: dataToSendText.text.codeUnits);
   }
 
   void onNewReceivedData(List<int> data) {
@@ -162,23 +158,21 @@ class BluetoothController extends ChangeNotifier {
 }
 
 class BluetoothData {
-  late String rpm;
-  late String temperature;
-  late String lap;
   late String bufferBT;
   late int rpmDisplay;
   late double temperatureDisplay;
+  late ProbeStatus temperatureProbeStatus;
   late LapTime lapDisplay;
+  late String version;
   late int dataType;
 
   BluetoothData(){
-    rpm = "";
-    temperature = "";
-    lap = "";
     bufferBT = "";
     rpmDisplay = 0;
     temperatureDisplay = 0.0;
+    temperatureProbeStatus = ProbeStatus.probeOk;
     lapDisplay = LapTime();
+    version = "";
     dataType = 0;
   }
 
@@ -189,10 +183,20 @@ class BluetoothData {
         case tempCharacter:
           if(bufferBT != "") {
             debugPrint(bufferBT);
-            if(bufferBT.substring(0,1) == tempProbeBrokenCharacter) {
-              temperature = "0.0";
-              updateData = true;
-            } else {
+            switch(bufferBT.substring(0,1)){
+              case tempProbeBrokenCharacter:
+                temperatureDisplay = 0.0;
+                temperatureProbeStatus = ProbeStatus.probeBroken;
+                updateData = true;
+                break;
+              case highTempCharacter:
+                temperatureProbeStatus = ProbeStatus.highTemperature;
+                break;
+              default:
+                temperatureProbeStatus = ProbeStatus.probeOk;
+                break;
+            }
+            if(temperatureProbeStatus != ProbeStatus.probeBroken) {
               //in case of error on communication line discard message
               double? t = double.tryParse(bufferBT);
               if(t != null){
@@ -202,7 +206,7 @@ class BluetoothData {
             }
           }
           bufferBT = "";
-        break;
+          break;
 
         case rpmCharacter:
           if(bufferBT != "") {
@@ -215,7 +219,7 @@ class BluetoothData {
             }
           }
           bufferBT = "";
-        break;
+          break;
 
         case lapCharacter:
           if(bufferBT != "") {
@@ -239,11 +243,19 @@ class BluetoothData {
             }
           }
           bufferBT = "";
-        break;
+          break;
 
+        case versionCharacter:
+          debugPrint(bufferBT);
+          version = bufferBT;
+          updateData = true;
+          bufferBT = "";
+          break;
+        
         default:
           //create data
           bufferBT += String.fromCharCodes([byte]);
+          break;
         }
       } 
     return updateData;    

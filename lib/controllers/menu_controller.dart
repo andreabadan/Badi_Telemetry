@@ -25,6 +25,9 @@ class MenuController extends ChangeNotifier {
       if(indexMenu == IndexMenuState.telemetry) {
         setIndexMenuState(IndexMenuState.search);
       }
+      if(indexMenu == IndexMenuState.updateFirmware){
+        setIndexMenuState(IndexMenuState.search);
+      }
     }
     if (state == DeviceConnectionState.connected){
       if(indexMenu == IndexMenuState.search) {

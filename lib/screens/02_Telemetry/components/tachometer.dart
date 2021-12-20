@@ -156,7 +156,7 @@ class _TachometerWidget extends StatelessWidget {
               RadialAxis(
                 showAxisLine: false,
                 minimum: 0,
-                maximum: 160,
+                maximum: 100,
                 startAngle: 130,
                 endAngle: 410,
                 ticksPosition: ElementsPosition.outside,
@@ -195,27 +195,39 @@ class _TachometerWidget extends StatelessWidget {
                   )
                 ],
                 ranges: <GaugeRange>[
-                  GaugeRange(
-                      startValue: 50,
-                      endValue: 160,
-                      startWidth: 0.01,
-                      /// Sweep gradient not supported in web
-                      gradient: const SweepGradient(
-                        colors: <Color>[Colors.yellow, 
-                                        Color(0xFFB71C1C)],
-                        stops: <double>[0.25, 1]),
-                      color: Colors.blue,
-                      rangeOffset: 0.05,
-                      endWidth: 0.08,
-                      sizeUnit: GaugeSizeUnit.factor
-                  )
+                  if(tachometerData.temperatureProbeStatus == ProbeStatus.probeOk || tachometerData.temperatureProbeStatus == ProbeStatus.highTemperature)
+                    GaugeRange(
+                        startValue: 35,
+                        endValue: 100,
+                        startWidth: 0.01,
+                        /// Sweep gradient not supported in web
+                        gradient: const SweepGradient(
+                          colors: <Color>[Colors.yellow, 
+                                          Color(0xFFB71C1C)],
+                          stops: <double>[0.25, 1]),
+                        color: tachometerData.temperatureProbeStatus==ProbeStatus.probeOk
+                                ?Colors.blue
+                                :Colors.redAccent.shade700,
+                        rangeOffset: 0.05,
+                        endWidth: 0.08,
+                        sizeUnit: GaugeSizeUnit.factor
+                    )
                 ],
                 annotations: <GaugeAnnotation>[
                   GaugeAnnotation(
-                    widget: Text(tachometerData.temperatureDisplay!=999.9
-                        ?tachometerData.temperatureDisplay.toString()+' °C'
-                        :"Probe Broken",
-                      style: const TextStyle(fontSize: 20,fontWeight: FontWeight.bold)
+                    widget: Text(tachometerData.temperatureProbeStatus==ProbeStatus.probeBroken
+                        ?'Probe Broken'
+                        :tachometerData.temperatureProbeStatus==ProbeStatus.highTemperature
+                          ?'!! '+tachometerData.temperatureDisplay.toString()+' °C'
+                          :tachometerData.temperatureDisplay.toString()+' °C',
+                      style: TextStyle(fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: tachometerData.temperatureProbeStatus==ProbeStatus.probeBroken
+                          ?Colors.white60
+                          :tachometerData.temperatureProbeStatus==ProbeStatus.highTemperature
+                          ?Colors.redAccent.shade700
+                          :Colors.white,
+                        )
                       ),
                     angle: 90, positionFactor: 0.8
                   )
