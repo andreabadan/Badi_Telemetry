@@ -155,6 +155,21 @@ class BluetoothController extends ChangeNotifier {
                 fontSize: 16.0
             );
   }
+
+  void writeFW() async {
+    sendData(jumpToBootloader);
+    _printLog("Reboot in bootloader mode");
+    //Wait before jump to bootloader mode
+    await Future<void>.delayed(const Duration(seconds: bootloaderWaitTime));
+    //Check if board is in bootloader mode
+    if(tachometerData.bootloaderMode) {
+      _printLog("Jump done!");
+      sendData(applicationStart);
+      tachometerData.bootloaderMode = false;
+    } else {
+      _printLog("Error during reconnection!");
+    }
+  }
 }
 
 class BluetoothData {
@@ -164,6 +179,11 @@ class BluetoothData {
   late ProbeStatus temperatureProbeStatus;
   late LapTime lapDisplay;
   late String version;
+
+  late bool bootloaderMode;
+  late bool bootloaderOkReceived;
+  late bool bootloaderErrorReceived;
+
   late int dataType;
 
   BluetoothData(){
@@ -173,6 +193,11 @@ class BluetoothData {
     temperatureProbeStatus = ProbeStatus.probeOk;
     lapDisplay = LapTime();
     version = "";
+
+    bootloaderMode = false;
+    bootloaderOkReceived = false;
+    bootloaderErrorReceived = false;
+
     dataType = 0;
   }
 
@@ -180,6 +205,9 @@ class BluetoothData {
     bool updateData = false;
     for (var byte in data) {
       switch(byte){
+        /*********************/
+        /*APPLICATION MESSAGE*/
+        /*********************/
         case tempCharacter:
           if(bufferBT != "") {
             debugPrint(bufferBT);
@@ -251,10 +279,28 @@ class BluetoothData {
           updateData = true;
           bufferBT = "";
           break;
+        /********************/
+        /*BOOTLOADER MESSAGE*/
+        /********************/
+        case bootloaderRunning:
+          bootloaderMode = true;
+          bufferBT = "";
+          break;
+
+        case flashingError:
+          bootloaderErrorReceived = true;
+          bufferBT = "";
+          break;
         
+        case flashingOk:
+          bootloaderOkReceived = true;
+          bufferBT = "";
+          break;
+
         default:
           //create data
           bufferBT += String.fromCharCodes([byte]);
+          debugPrint(bufferBT);
           break;
         }
       } 
