@@ -14,9 +14,9 @@ class UpdateFirmware extends StatelessWidget {
 
 @override
   Widget build(BuildContext context) {
-    var tachometerData = context.watch<BluetoothController>().tachometerData.version;
-    if(tachometerData == "") {
-      Provider.of<BluetoothController>(context, listen: false).sendData(checkFirmwareVerion);
+    var tachometerDataFwVers = context.watch<BluetoothController>().tachometerData.version;
+    if(tachometerDataFwVers == "") {
+      Provider.of<BluetoothController>(context, listen: false).sendData(tachometerDataFwVers);
     }
     return SafeArea(
       child: SingleChildScrollView(
@@ -33,8 +33,8 @@ class UpdateFirmware extends StatelessWidget {
                   child: Column(
                     children:[
                       //TODO:UpdateFirmware page
-                      Text("Firmware version: " + tachometerData),
-                      Text("New firmware version available: 0.1.0B"),
+                      Text("Firmware version: " + tachometerDataFwVers),
+                      const Text("New firmware version available: 0.1.0B"),
                       InkWell(
                         onTap: () {
                           Provider.of<BluetoothController>(context, listen: false).writeFW();
@@ -46,7 +46,7 @@ class UpdateFirmware extends StatelessWidget {
                             color: primaryColor,
                             borderRadius: BorderRadius.all(Radius.circular(10)),
                           ),
-                          child: Text("Write new firmware"),
+                          child: const Text("Write new firmware"),
                         ),
                       )
                       //if (!Responsive.isMobile(context))

@@ -24,7 +24,7 @@ class Info extends StatelessWidget {
                 Expanded(
                   flex: 5,
                   child: Column(
-                    children:[
+                    children:const [
                       //TODO:UpdateFirmware page
                       Text("Info"),
                       //if (!Responsive.isMobile(context))

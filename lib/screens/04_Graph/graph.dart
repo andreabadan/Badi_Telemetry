@@ -24,7 +24,7 @@ class Graph extends StatelessWidget {
                 Expanded(
                   flex: 5,
                   child: Column(
-                    children:[
+                    children:const [
                       //TODO:UpdateFirmware page
                       Text("Graph"),
                       //if (!Responsive.isMobile(context))

@@ -1,5 +1,4 @@
 import 'package:badi_telemetry/models/functions.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
@@ -15,7 +14,7 @@ class Tachometer extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    var bluetoothState = context.watch<BluetoothController>().bluetoothState;
+    DeviceConnectionState bluetoothState = context.watch<BluetoothController>().bluetoothState;
     return Container(
       decoration: const BoxDecoration(
         color: secondaryColor,
@@ -23,7 +22,9 @@ class Tachometer extends StatelessWidget {
       ),
       child: SizedBox(
         width: double.infinity,
-        child: (bluetoothState == DeviceConnectionState.connected) ? _TachometerWidget() : loading(),
+        //TODO: Deleate demo mode
+        //child: (bluetoothState == DeviceConnectionState.connected ) ? _TachometerWidget() : loading(),
+        child: (bluetoothState == DeviceConnectionState.connected || bluetoothState == DeviceConnectionState.disconnected) ? _TachometerWidget() : loading(),
       ),
     );
   }
@@ -34,7 +35,7 @@ class _TachometerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    var tachometerData = context.watch<BluetoothController>().tachometerData;
+    BluetoothData tachometerData = context.watch<BluetoothController>().tachometerData;
     
     return SafeArea( 
       child: Row(

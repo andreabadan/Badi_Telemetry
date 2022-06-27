@@ -64,6 +64,17 @@ class SideMenu extends StatelessWidget {
                 Provider.of<MenuController>(context, listen: false).setIndexMenuState(IndexMenuState.search);
               },
             ),
+          //TODO: Deleate demo mode
+          if(bluetoothState == DeviceConnectionState.disconnected || bluetoothState == DeviceConnectionState.disconnecting)
+            DrawerListTile(
+              title: "Demo",
+              svgSrc: "assets/icons/unknown.svg",
+              itemColor: itemSelectableColor,
+              press: () {
+                Navigator.of(context).pop();
+                Provider.of<MenuController>(context, listen: false).setIndexMenuState(IndexMenuState.telemetry);
+              },
+            ),
           DrawerListTile(
             title: "Graph",
             svgSrc: "assets/icons/graph.svg",

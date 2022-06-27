@@ -1,5 +1,4 @@
 import 'package:badi_telemetry/controllers/menu_controller.dart';
-import 'package:badi_telemetry/controllers/bluetooth_controller.dart';
 import 'package:badi_telemetry/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';

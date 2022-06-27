@@ -26,8 +26,8 @@ const tempProbeBrokenCharacter = "B";//66 B
 const highTempCharacter        = "H";//72 H
 const lapFinishedCharacter     = "F";//70 F
 //Send Strings
-const checkFirmwareVerion = "FWV";
-const jumpToBootloader    = "BOOT";
+const checkFirmwareVersion = "FWV";
+const jumpToBootloader     = "BOOT";
 //Bootloader comand strings
 const eraseFlashMemory  = "#\$ERASE_MEMORY";
 const flashingStart     = "#\$FLASH_START#";

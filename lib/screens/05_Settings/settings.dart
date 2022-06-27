@@ -24,7 +24,7 @@ class Settings extends StatelessWidget {
                 Expanded(
                   flex: 5,
                   child: Column(
-                    children:[
+                    children:const [
                       //TODO:UpdateFirmware page
                       Text("Settings"),
                       //if (!Responsive.isMobile(context))
