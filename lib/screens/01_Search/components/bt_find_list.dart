@@ -35,9 +35,9 @@ class _ListFoundDevices extends StatelessWidget {
     if(bluetooth.bluetoothState == DeviceConnectionState.disconnected) {
       if(bluetooth.scanning) {
         if(bluetooth.foundBleUARTDevices.isNotEmpty) {
-          return DataTable2 (
+          return DataTable (
             columnSpacing: defaultPadding,
-            minWidth: 600,
+            //minWidth: 600,
             //onSelectChanged:(int index) => Provider.of<BluetoothController>(context, listen: false).onConnectDevice(index);,
             columns:[
               DataColumn(
@@ -56,16 +56,24 @@ class _ListFoundDevices extends StatelessWidget {
                 ),
               ),
             ],
-            rows:List.generate(
+            rows:List<DataRow>.generate(
               bluetooth.foundBleUARTDevices.length,
               (index) //=> devicesDataRow(bluetooth.foundBleUARTDevices[index], index),
               { 
-                return DataRow2(
-                  onTap: ()=> Provider.of<BluetoothController>(context, listen: false).onConnectDevice(index),
+                return DataRow(
                   cells: [
-                    DataCell(Text(bluetooth.foundBleUARTDevices[index].name)),
-                    DataCell(Text(bluetooth.foundBleUARTDevices[index].id)),
-                    const DataCell(Text("Ready to connect!")),
+                    DataCell(
+                      Text(bluetooth.foundBleUARTDevices[index].name),
+                      onTap: ()=> Provider.of<BluetoothController>(context, listen: false).onConnectDevice(index)
+                    ),
+                    DataCell(
+                      Text(bluetooth.foundBleUARTDevices[index].id),
+                      onTap: ()=> Provider.of<BluetoothController>(context, listen: false).onConnectDevice(index)
+                    ),
+                    DataCell(
+                      const Text("Ready to connect!"),
+                      onTap: ()=> Provider.of<BluetoothController>(context, listen: false).onConnectDevice(index)
+                    ),
                   ],
                 );
               }

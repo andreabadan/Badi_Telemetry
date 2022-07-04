@@ -1,8 +1,13 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+
+import 'package:external_path/external_path.dart';
 
 import 'package:badi_telemetry/constants.dart';
 
@@ -28,9 +33,33 @@ class BluetoothController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void sendData(String valueToSend) async {
-    TextEditingController dataToSendText = TextEditingController(text: valueToSend);
-    await flutterReactiveBle.writeCharacteristicWithResponse(rxCharacteristic, value: dataToSendText.text.codeUnits);
+  Future<void> sendCommand(String valueToSend) {
+    return flutterReactiveBle.writeCharacteristicWithResponse(rxCharacteristic, value: valueToSend.codeUnits);
+  }
+
+  Future<Uint8List> _binFile(String binName) async {
+    final String path = await ExternalPath.getExternalStoragePublicDirectory(ExternalPath.DIRECTORY_DOWNLOADS);
+    //Read as bytes
+    if (await Permission.storage.request().isGranted) {
+      return File('$path/$binName').readAsBytes();
+    } 
+    else {
+      return Future.error('Permission denided');
+    }
+  }
+  Future<void> sendBin(String binName) async {
+    final Uint8List binFile = await _binFile(binName).catchError((onError){
+      _printLog(onError);
+      return onError;
+    });
+    const charNumb = 16;
+    for(var i=0; i<binFile.length; i=i+charNumb){
+      await flutterReactiveBle.writeCharacteristicWithResponse(rxCharacteristic, value: binFile.sublist(i, i+charNumb>binFile.length? binFile.length : i+charNumb))
+        .catchError((onError){
+          _printLog(onError);
+          return onError;
+        });
+    }
   }
 
   void onNewReceivedData(List<int> data) {
@@ -157,18 +186,31 @@ class BluetoothController extends ChangeNotifier {
   }
 
   void writeFW() async {
-    sendData(jumpToBootloader);
+    sendCommand(jumpToBootloader);
+    tachometerData.updatePercentage = 0;
     _printLog("Reboot in bootloader mode");
     //Wait before jump to bootloader mode
     await Future<void>.delayed(const Duration(seconds: bootloaderWaitTime));
     //Check if board is in bootloader mode
     if(tachometerData.bootloaderMode) {
-      _printLog("Jump done!");
-      sendData(applicationStart);
-      tachometerData.bootloaderMode = false;
+      _printLog("Update started!");
+      sendCommand(flashingStart).then((value) =>
+        //writeCounter();
+        sendBin("Bootloader_STM32F103CBT6.bin").then((value) => 
+          sendCommand(flashingStart).then((value) =>
+            sendCommand(flashingFinish)
+          )
+        )
+      ).catchError((onError){
+        _printLog("0x002: Error during Ereasing!");
+      });
     } else {
-      _printLog("Error during reconnection!");
+      _printLog("0x001: Error during reconnection!");
     }
+    tachometerData.updatePercentage = 100;
+    tachometerData.bootloaderMode = false;
+    tachometerData.bootloaderOkReceived = false;
+    tachometerData.bootloaderErrorReceived = false;
   }
 }
 
@@ -179,6 +221,7 @@ class BluetoothData {
   late ProbeStatus temperatureProbeStatus;
   late LapTime lapDisplay;
   late String version;
+  late double updatePercentage;
 
   late bool bootloaderMode;
   late bool bootloaderOkReceived;
@@ -193,6 +236,7 @@ class BluetoothData {
     temperatureProbeStatus = ProbeStatus.probeOk;
     lapDisplay = LapTime();
     version = "";
+    updatePercentage = 100;
 
     bootloaderMode = false;
     bootloaderOkReceived = false;

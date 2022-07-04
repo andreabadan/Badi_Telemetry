@@ -5,7 +5,7 @@ const primaryColor   = Color(0xFF2697FF);
 const secondaryColor = Color(0xFF2A2D3E);
 const bgColor        = Color(0xFF212332);
 
-const itemSelectableColor    = Colors.white70;
+const itemSelectableColor    = Colors.white;
 const itemNotSelectableColor = Colors.white12;
 
 const defaultPadding = 16.0;

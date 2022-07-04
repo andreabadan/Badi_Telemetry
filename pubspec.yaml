@@ -28,7 +28,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   flutter_reactive_ble: ^5.0.2
-  permission_handler: ^8.2.6
+  permission_handler: ^10.0.0
   fluttertoast: ^8.0.8
 
   syncfusion_flutter_gauges: ^20.1.61
@@ -39,6 +39,8 @@ dependencies:
   fl_chart: ^0.36.1
   provider: ^6.0.3
   data_table_2: ^2.0.3
+
+  external_path: ^1.0.1
 
   flutter:
     sdk: flutter

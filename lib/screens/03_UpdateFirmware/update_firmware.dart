@@ -1,3 +1,4 @@
+import 'package:badi_telemetry/screens/03_UpdateFirmware/components/update_firmware_process.dart';
 import 'package:badi_telemetry/models/header_home.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,10 +15,11 @@ class UpdateFirmware extends StatelessWidget {
 
 @override
   Widget build(BuildContext context) {
-    var tachometerDataFwVers = context.watch<BluetoothController>().tachometerData.version;
+    String tachometerDataFwVers = context.watch<BluetoothController>().tachometerData.version;
     if(tachometerDataFwVers == "") {
-      Provider.of<BluetoothController>(context, listen: false).sendData(tachometerDataFwVers);
+      Provider.of<BluetoothController>(context, listen: false).sendCommand(tachometerDataFwVers);
     }
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(defaultPadding),
@@ -32,30 +34,17 @@ class UpdateFirmware extends StatelessWidget {
                   flex: 5,
                   child: Column(
                     children:[
-                      //TODO:UpdateFirmware page
                       Text("Firmware version: " + tachometerDataFwVers),
+                      //TODO: search new firmware
                       const Text("New firmware version available: 0.1.0B"),
-                      InkWell(
-                        onTap: () {
-                          Provider.of<BluetoothController>(context, listen: false).writeFW();
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(defaultPadding * 0.75),
-                          margin: const EdgeInsets.symmetric(horizontal: defaultPadding / 2),
-                          decoration: const BoxDecoration(
-                            color: primaryColor,
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                          ),
-                          child: const Text("Write new firmware"),
-                        ),
-                      )
+                      const UpdateFirmwareProcess()
                       //if (!Responsive.isMobile(context))
                       //TODO:Someting if it isn't mobile
                     ],
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),
