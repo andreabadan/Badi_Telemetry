@@ -52,9 +52,15 @@ class BluetoothController extends ChangeNotifier {
       _printLog(onError);
       return onError;
     });
-    const charNumb = 16;
-    for(var i=0; i<binFile.length; i=i+charNumb){
-      await flutterReactiveBle.writeCharacteristicWithResponse(rxCharacteristic, value: binFile.sublist(i, i+charNumb>binFile.length? binFile.length : i+charNumb))
+
+    for(var i=0; i<binFile.length; i=i+commandLenght){
+      tachometerData.bootloaderErrorReceived = false;
+      tachometerData.bootloaderOkReceived = false;
+      await flutterReactiveBle.writeCharacteristicWithResponse(rxCharacteristic, value: binFile.sublist(i, i+commandLenght>binFile.length? binFile.length : i+commandLenght))
+        .then((value){ 
+          tachometerData.updatePercentage = (i*100)/binFile.length;
+          //TODO: WAIT OK
+        })
         .catchError((onError){
           _printLog(onError);
           return onError;
@@ -195,12 +201,11 @@ class BluetoothController extends ChangeNotifier {
     if(tachometerData.bootloaderMode) {
       _printLog("Update started!");
       sendCommand(flashingStart).then((value) =>
-        //writeCounter();
-        sendBin("Bootloader_STM32F103CBT6.bin").then((value) => 
-          sendCommand(flashingStart).then((value) =>
-            sendCommand(flashingFinish)
-          )
-        )
+        sendBin("BadiApp_STM32F103CBT6.bin").then((value) => 
+          sendCommand(flashingFinish)
+        ).catchError((onError){
+          _printLog("0x003: Error during writing!");
+        })
       ).catchError((onError){
         _printLog("0x002: Error during Ereasing!");
       });

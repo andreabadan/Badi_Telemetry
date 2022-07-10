@@ -34,6 +34,7 @@ const flashingStart     = "#\$FLASH_START#";
 const flashingFinish    = "#\$FLASH_FINISH";
 const flashingAbort     = "#\$FLASH_ABORT#";
 const applicationStart  = "#\$APPL_START\$#";
+const commandLenght     = 8;
 //Bootloader response
 const bootloaderRunning = 98;//b
 const flashingError     = 101;//e

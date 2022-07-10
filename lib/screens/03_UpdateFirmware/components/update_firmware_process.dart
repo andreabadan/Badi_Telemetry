@@ -24,11 +24,16 @@ class UpdateFirmwareProcess extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(defaultPadding * 0.75),
         margin: const EdgeInsets.symmetric(horizontal: defaultPadding / 2),
-        decoration: const BoxDecoration(
-          color: primaryColor,
-          borderRadius: BorderRadius.all(Radius.circular(10)),
+        decoration: BoxDecoration(
+          color: updatePercentage == 100 && !bootloaderMode? primaryColor : itemNotSelectableColor,
+          borderRadius: const BorderRadius.all(Radius.circular(10)),
         ),
-        child: const Text("Write new firmware"),
+        child: Text(
+          updatePercentage == 100 && !bootloaderMode? "Write new firmware" : "Updating: $updatePercentage %",
+          style: const TextStyle(
+              color: itemSelectableColor
+            ),
+          ),
       ),
     );
   }
