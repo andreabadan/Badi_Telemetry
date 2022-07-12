@@ -13,11 +13,10 @@ class UpdateFirmwareProcess extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool bootloaderMode = context.watch<BluetoothController>().tachometerData.bootloaderMode;
-    double updatePercentage = context.watch<BluetoothController>().tachometerData.updatePercentage;
+    int updatePercentage = context.watch<BluetoothController>().tachometerData.updatePercentage;
     return InkWell(
       onTap: () {
-        if(updatePercentage == 100 && !bootloaderMode){
+        if(updatePercentage == 100){
           Provider.of<BluetoothController>(context, listen: false).writeFW();
         }
       },
@@ -25,11 +24,11 @@ class UpdateFirmwareProcess extends StatelessWidget {
         padding: const EdgeInsets.all(defaultPadding * 0.75),
         margin: const EdgeInsets.symmetric(horizontal: defaultPadding / 2),
         decoration: BoxDecoration(
-          color: updatePercentage == 100 && !bootloaderMode? primaryColor : itemNotSelectableColor,
+          color: updatePercentage == 100? primaryColor : itemNotSelectableColor,
           borderRadius: const BorderRadius.all(Radius.circular(10)),
         ),
         child: Text(
-          updatePercentage == 100 && !bootloaderMode? "Write new firmware" : "Updating: $updatePercentage %",
+          updatePercentage == 100 ? "Write new firmware" : "Updating: $updatePercentage %",
           style: const TextStyle(
               color: itemSelectableColor
             ),

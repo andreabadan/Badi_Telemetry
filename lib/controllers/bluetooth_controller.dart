@@ -53,18 +53,27 @@ class BluetoothController extends ChangeNotifier {
       return onError;
     });
 
-    for(var i=0; i<binFile.length; i=i+commandLenght){
+    for(var i=0; i<=binFile.length; i=i+commandLenght){
       tachometerData.bootloaderErrorReceived = false;
       tachometerData.bootloaderOkReceived = false;
       await flutterReactiveBle.writeCharacteristicWithResponse(rxCharacteristic, value: binFile.sublist(i, i+commandLenght>binFile.length? binFile.length : i+commandLenght))
-        .then((value){ 
-          tachometerData.updatePercentage = (i*100)/binFile.length;
-          //TODO: WAIT OK
-        })
         .catchError((onError){
           _printLog(onError);
           return onError;
         });
+      if(((i*100)/binFile.length).round() != tachometerData.updatePercentage){ 
+        tachometerData.updatePercentage = ((i*100)/binFile.length).round();
+        _refreshScreen();
+      }
+      for(int i=0; i<10; i++){
+        await Future<void>.delayed(const Duration(milliseconds: ackReceived~/10));
+        if(tachometerData.bootloaderOkReceived || tachometerData.bootloaderErrorReceived){
+          break;
+        }
+      }
+      if(!tachometerData.bootloaderOkReceived){
+        return Future.error('Error during comunication');
+      }
     }
   }
 
@@ -194,21 +203,21 @@ class BluetoothController extends ChangeNotifier {
   void writeFW() async {
     sendCommand(jumpToBootloader);
     tachometerData.updatePercentage = 0;
+    _refreshScreen();
     _printLog("Reboot in bootloader mode");
     //Wait before jump to bootloader mode
-    await Future<void>.delayed(const Duration(seconds: bootloaderWaitTime));
+    for(int i=0; i<100; i++){
+      await Future<void>.delayed(const Duration(milliseconds: bootloaderWaitTime~/100));
+      if(tachometerData.bootloaderMode){
+        break;
+      }
+    }
     //Check if board is in bootloader mode
     if(tachometerData.bootloaderMode) {
       _printLog("Update started!");
-      sendCommand(flashingStart).then((value) =>
-        sendBin("BadiApp_STM32F103CBT6.bin").then((value) => 
-          sendCommand(flashingFinish)
-        ).catchError((onError){
-          _printLog("0x003: Error during writing!");
-        })
-      ).catchError((onError){
-        _printLog("0x002: Error during Ereasing!");
-      });
+      await sendCommand(flashingStart)          .catchError((onError) => _printLog("0x002: Error during Ereasing!"));
+      await sendBin("BadiApp_STM32F103CBT6.bin").catchError((onError) => _printLog("0x003: Error during writing!"));
+      await sendCommand(flashingFinish)         .catchError((onError) => _printLog("0x004: Error during Reboot!"));
     } else {
       _printLog("0x001: Error during reconnection!");
     }
@@ -216,6 +225,7 @@ class BluetoothController extends ChangeNotifier {
     tachometerData.bootloaderMode = false;
     tachometerData.bootloaderOkReceived = false;
     tachometerData.bootloaderErrorReceived = false;
+    _refreshScreen();
   }
 }
 
@@ -226,7 +236,7 @@ class BluetoothData {
   late ProbeStatus temperatureProbeStatus;
   late LapTime lapDisplay;
   late String version;
-  late double updatePercentage;
+  late int updatePercentage;
 
   late bool bootloaderMode;
   late bool bootloaderOkReceived;

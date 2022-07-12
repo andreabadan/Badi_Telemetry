@@ -14,7 +14,8 @@ final Uuid serviceUUID = Uuid.parse("0000FFE0-0000-1000-8000-00805F9B34FB");
 final Uuid rxUUID      = Uuid.parse("0000FFE2-0000-1000-8000-00805F9B34FB");
 final Uuid txUUID      = Uuid.parse("0000FFE1-0000-1000-8000-00805F9B34FB");
 //Time to wait during Jump to bootloader
-const bootloaderWaitTime = 5;
+const bootloaderWaitTime = 5000;
+const ackReceived = 500;
 
 //Escape Characters
 const tempCharacter    = 84;//T
