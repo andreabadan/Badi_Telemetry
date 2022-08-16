@@ -53,7 +53,7 @@ class BluetoothController extends ChangeNotifier {
       return onError;
     });
 
-    for(var i=0; i<=binFile.length; i=i+commandLenght){
+    for(var i=0; i<binFile.length; i=i+commandLenght){
       tachometerData.bootloaderErrorReceived = false;
       tachometerData.bootloaderOkReceived = false;
       await flutterReactiveBle.writeCharacteristicWithResponse(rxCharacteristic, value: binFile.sublist(i, i+commandLenght>binFile.length? binFile.length : i+commandLenght))
